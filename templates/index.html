@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TORNADO - أداة التحميل الاحترافية</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header>
+        <div class="logo">TORNADO</div>
+        <nav>
+                          ما عليك سوى لصق رابط الفيديو أو الأغنية في الحقل أدناه، ثم الضغط على "تحليل الرابط" لاختيار الجودة والبدء في التحميل!
+        </nav>
+    </header>
+
+    <main class="hero">
+        <h1>تحميل الفيديوهات والأغاني بدقة عالية</h1>
+        <p>TORNADO - أسرع أداة تحميل فيديوهات وأغاني من تيك توك، يوتيوب، انستجرام، وفيسبوك</p>
+
+        <div class="search-box">
+            <input type="text" id="urlInput" placeholder="الصق الرابط هنا...">
+            <button onclick="analyzeVideo()" class="neon-btn" id="analyzeBtn">تحليل الرابط</button>
+        </div>
+
+        <div id="qualitySelector" class="hero" style="display:none; margin-top: 20px;">
+            <h3 id="videoTitle" style="color: white; margin-bottom: 15px;"></h3>
+            <select id="formatSelect" class="custom-select" style="margin-bottom: 15px; width: 300px; padding: 10px; border-radius: 20px;">
+                </select>
+            <br>
+            <button onclick="startDownload()" class="neon-btn">تأكيد التحميل</button>
+        </div>
+    </main>
+
+    <section class="features">
+        <div class="card">
+            <h3>بدون علامة مائية</h3>
+            <p>تحميل نظيف وسريع</p>
+        </div>
+        <div class="card">
+            <h3>جودة عالية</h3>
+            <p>دعم كامل لدقة 4K و HD</p>
+        </div>
+        <div class="card">
+            <h3>تحميل سريع</h3>
+            <p>سيرفرات فائقة السرعة</p>
+        </div>
+    </section>
+
+    <script>
+        async function analyzeVideo() {
+            const urlInput = document.getElementById('urlInput');
+            const btn = document.getElementById('analyzeBtn');
+            const selector = document.getElementById('qualitySelector');
+            
+            if (!urlInput.value) { alert('يرجى لصق الرابط أولاً!'); return; }
+
+            btn.disabled = true;
+            btn.innerText = 'جاري التحليل...';
+            
+            try {
+                const res = await fetch(`/analyze?url=${encodeURIComponent(urlInput.value)}`);
+                const data = await res.json();
+                
+                if (data.formats) {
+                    const select = document.getElementById('formatSelect');
+                    select.innerHTML = '';
+                    data.formats.forEach(f => {
+                        select.innerHTML += `<option value="${f.format_id}|${f.type}">${f.note}</option>`;
+                    });
+                    document.getElementById('videoTitle').innerText = data.title;
+                    selector.style.display = 'block';
+                } else {
+                    alert('خطأ في تحليل الرابط: ' + (data.error || 'تأكد من صحته'));
+                }
+            } catch (e) {
+                alert('حدث خطأ أثناء الاتصال بالسيرفر');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'تحليل الرابط';
+            }
+        }
+
+        function startDownload() {
+            const url = document.getElementById('urlInput').value;
+            const value = document.getElementById('formatSelect').value;
+            const [formatId, type] = value.split('|');
+            
+            alert('سيبدأ التحميل الآن...');
+            window.location.href = `/download?url=${encodeURIComponent(url)}&format=${formatId}&type=${type}`;
+        }
+    </script>
+</body>
+</html>
