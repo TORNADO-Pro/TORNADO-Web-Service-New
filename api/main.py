@@ -58,7 +58,9 @@ async def download_video(url: str, format: str, type: str):
             'format': format if type == 'video' else 'bestaudio/best',
             'outtmpl': f'{temp_dir}/{file_base}.%(ext)s',
             'restrictfilenames': True,
-            'postprocessors': [], # هذا السطر يمنع الخطأ تماماً
+            'postprocessors': [], 
+            # إضافة خيار التمويه (Impersonation) لتجاوز حظر تيك توك
+            'impersonate': 'chrome', 
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
