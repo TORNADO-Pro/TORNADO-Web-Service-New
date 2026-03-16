@@ -75,5 +75,7 @@ async def download_video(url: str, format: str, type: str):
     except Exception as e:
         return {"error": str(e)}
 
+        # اجعل تشغيل uvicorn محصوراً فقط عند التشغيل المحلي
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
