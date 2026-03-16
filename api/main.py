@@ -51,29 +51,27 @@ async def analyze_video(url: str):
 async def download_video(url: str, format: str, type: str):
     try:
         temp_dir = tempfile.gettempdir()
-        # استخدام اسم ملف ثابت ومبسط لتجنب مشاكل الرموز والهاشتاجات
         file_base = "downloaded_file"
         
+        # إعدادات التحميل: بدون أي معالجة لاحقة (FFmpeg)
         ydl_opts = {
             'format': format if type == 'video' else 'bestaudio/best',
             'outtmpl': f'{temp_dir}/{file_base}.%(ext)s',
-            'restrictfilenames': True, # هذا يمنع استخدام الرموز في اسم الملف
+            'restrictfilenames': True,
+            'postprocessors': [], # هذا السطر يمنع الخطأ تماماً
         }
-
-        if type == 'audio':
-            ydl_opts['postprocessors'] = [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }]
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
-            # بناء مسار الملف بناءً على النوع
-            extension = "mp3" if type == 'audio' else "mp4"
-            final_path = os.path.join(temp_dir, f"{file_base}.{extension}")
+            info = ydl.extract_info(url, download=True)
+            # yt-dlp سيقوم بتسمية الملف بناءً على الامتداد المتوفر (m4a, webm, mp4)
+            ext = info.get('ext')
+            final_path = os.path.join(temp_dir, f"{file_base}.{ext}")
             
-        return FileResponse(path=final_path, media_type='audio/mpeg' if type == 'audio' else 'video/mp4', filename=f"Tornado_Download.{extension}")
+            return FileResponse(
+                path=final_path, 
+                media_type='audio/mpeg' if type == 'audio' else 'video/mp4', 
+                filename=f"Tornado_Download.{ext}"
+            )
         
     except Exception as e:
         print(traceback.format_exc())
