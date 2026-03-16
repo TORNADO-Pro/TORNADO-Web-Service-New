@@ -1,96 +1,303 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TORNADO - أداة التحميل الاحترافية</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>TORNADO | تحميل فيديوهات تيك توك بدون علامة مائية وأغاني MP3</title>
+
+<meta name="description" content="أسرع أداة مجانية لتحميل فيديوهات تيك توك بدون علامة مائية، وتحميل فيديوهات فيسبوك وانستقرام وتحويلها إلى أغاني MP3 بدقة عالية.">
+<meta name="keywords" content="تحميل فيديوهات تيك توك، تحميل من فيسبوك، تيك توك بدون علامة مائية، تحميل أغاني mp3, tornado downloader">
+<meta name="author" content="Tornado Pro">
+
+<script defer src="/_vercel/insights/script.js"></script>
+
+<link rel="stylesheet" href="/static/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+
 </head>
+
 <body>
 
-    <header>
-        <div class="logo">TORNADO</div>
-        <nav>
-                          ما عليك سوى لصق رابط الفيديو أو الأغنية في الحقل أدناه، ثم الضغط على "تحليل الرابط" لاختيار الجودة والبدء في التحميل!
-        </nav>
-    </header>
+<div class="menu-btn" onclick="toggleMenu()">
+<div class="line"></div>
+<div class="line"></div>
+<div class="line"></div>
+</div>
 
-    <main class="hero">
-        <h1>تحميل الفيديوهات والأغاني بدقة عالية</h1>
-        <p>TORNADO - أسرع أداة تحميل فيديوهات وأغاني من تيك توك، يوتيوب، انستجرام، وفيسبوك</p>
+<header>
+<div class="logo">TORNADO</div>
+</header>
 
-        <div class="search-box">
-            <input type="text" id="urlInput" placeholder="الصق الرابط هنا...">
-            <button onclick="analyzeVideo()" class="neon-btn" id="analyzeBtn">تحليل الرابط</button>
-        </div>
+<p style="text-align:center">
+ما عليك سوى لصق رابط الفيديو الذي تريد تحميله في المربع أدناه
+</p>
 
-        <div id="qualitySelector" class="hero" style="display:none; margin-top: 20px;">
-            <h3 id="videoTitle" style="color: white; margin-bottom: 15px;"></h3>
-            <select id="formatSelect" class="custom-select" style="margin-bottom: 15px; width: 300px; padding: 10px; border-radius: 20px;">
-                </select>
-            <br>
-            <button onclick="startDownload()" class="neon-btn">تأكيد التحميل</button>
-        </div>
-    </main>
+<div class="nav-menu" id="navMenu">
+<a href="#" onclick="showAbout()">لمحة عن التطبيق</a>
+<a href="#" onclick="showPrivacy()">سياسة الخصوصية</a>
+</div>
 
-    <section class="features">
-        <div class="card">
-            <h3>بدون علامة مائية</h3>
-            <p>تحميل نظيف وسريع</p>
-        </div>
-        <div class="card">
-            <h3>جودة عالية</h3>
-            <p>دعم كامل لدقة 4K و HD</p>
-        </div>
-        <div class="card">
-            <h3>تحميل سريع</h3>
-            <p>سيرفرات فائقة السرعة</p>
-        </div>
-    </section>
+<div id="aboutModal" class="modal">
+<div class="modal-content">
+<span class="close" onclick="closeAbout()">&times;</span>
+<h2>عن تطبيق TORNADO</h2>
+<p>
+هذا التطبيق هو أداتك الأسرع لتحميل مقاطع الفيديو من تيك توك،
+يوتيوب، وفيسبوك بجودة عالية وبشكل مجاني تماماً.
+</p>
+</div>
+</div>
 
-    <script>
-        async function analyzeVideo() {
-            const urlInput = document.getElementById('urlInput');
-            const btn = document.getElementById('analyzeBtn');
-            const selector = document.getElementById('qualitySelector');
-            
-            if (!urlInput.value) { alert('يرجى لصق الرابط أولاً!'); return; }
+<div id="privacyModal" class="modal">
+<div class="modal-content">
+<span class="close" onclick="closePrivacy()">&times;</span>
+<h2>سياسة الخصوصية</h2>
+<p>
+نحن في TORNADO نهتم بخصوصيتك.
+لا نقوم بحفظ الروابط التي تقوم بتحليلها،
+ولا نقوم بتخزين أي بيانات شخصية للمستخدمين.
+</p>
+</div>
+</div>
 
-            btn.disabled = true;
-            btn.innerText = 'جاري التحليل...';
-            
-            try {
-                const res = await fetch(`/analyze?url=${encodeURIComponent(urlInput.value)}`);
-                const data = await res.json();
-                
-                if (data.formats) {
-                    const select = document.getElementById('formatSelect');
-                    select.innerHTML = '';
-                    data.formats.forEach(f => {
-                        select.innerHTML += `<option value="${f.format_id}|${f.type}">${f.note}</option>`;
-                    });
-                    document.getElementById('videoTitle').innerText = data.title;
-                    selector.style.display = 'block';
-                } else {
-                    alert('خطأ في تحليل الرابط: ' + (data.error || 'تأكد من صحته'));
-                }
-            } catch (e) {
-                alert('حدث خطأ أثناء الاتصال بالسيرفر');
-            } finally {
-                btn.disabled = false;
-                btn.innerText = 'تحليل الرابط';
-            }
-        }
+<main class="hero">
 
-        function startDownload() {
-            const url = document.getElementById('urlInput').value;
-            const value = document.getElementById('formatSelect').value;
-            const [formatId, type] = value.split('|');
-            
-            alert('سيبدأ التحميل الآن...');
-            window.location.href = `/download?url=${encodeURIComponent(url)}&format=${formatId}&type=${type}`;
-        }
-    </script>
+<h1>تحميل الفيديوهات والأغاني بدقة عالية</h1>
+
+<p class="logo-text">TORNADO</p>
+
+<p>
+أسرع أداة تحميل فيديوهات وأغاني من تيك توك،
+يوتيوب، انستجرام، وفيسبوك
+</p>
+
+<div class="search-box">
+
+<input type="text" id="urlInput" placeholder="الصق الرابط هنا...">
+
+<button id="clearBtn" onclick="clearInput()">×</button>
+
+<button onclick="analyzeVideo()" class="neon-btn" id="analyzeBtn">
+تحليل الرابط
+</button>
+
+</div>
+
+<div id="resultArea" style="display:none;margin-top:20px;">
+<div class="result-card">
+
+<img id="thumb" src="" alt="Thumbnail"
+style="width:100%;border-radius:10px;">
+
+<h3 id="title"></h3>
+
+<div id="downloadLinks"></div>
+
+</div>
+</div>
+
+<div class="platforms">
+
+<div class="icons">
+
+<img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" alt="Instagram">
+
+<img src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" alt="YouTube">
+
+<img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="TikTok">
+
+<img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_(2019).png" alt="Facebook">
+
+</div>
+
+<p>وباقي المنصات الشهيرة!</p>
+
+</div>
+
+<div id="qualitySelector" class="hero" style="display:none;margin-top:20px;">
+
+<h3 id="videoTitle" style="color:white;margin-bottom:15px;"></h3>
+
+<select id="formatSelect"
+class="custom-select"
+style="margin-bottom:15px;width:300px;padding:10px;border-radius:20px;background:#222;color:white;">
+</select>
+
+<br>
+
+<button onclick="startDownload()" class="neon-btn">
+تأكيد التحميل
+</button>
+
+</div>
+
+</main>
+
+<section class="features">
+
+<div class="card">
+<h3>بدون علامة مائية</h3>
+<p>تحميل نظيف وسريع من تيك توك</p>
+</div>
+
+<div class="card">
+<h3>جودة عالية</h3>
+<p>دعم كامل لدقة 4K و HD</p>
+</div>
+
+<div class="card">
+<h3>تحميل سريع</h3>
+<p>سيرفرات فائقة السرعة للـ MP3</p>
+</div>
+
+</section>
+
+<article style="color:#aaa;text-align:center;padding:40px 20px;max-width:800px;margin:0 auto;line-height:1.8;">
+
+<h2>لماذا تستخدم تورنيدو لتحميل الفيديوهات؟</h2>
+
+<p>
+إذا كنت تبحث عن تحميل فيديوهات تيك توك بدون علامة مائية
+أو ترغب في تحويل فيديوهات فيسبوك إلى أغاني MP3،
+فإن Tornado هو خيارك الأفضل.
+موقعنا يوفر خدمة مجانية تماماً وبدون إعلانات مزعجة،
+مع دعم كامل للتحميل من انستجرام ويوتيوب
+بأعلى الجودات المتوفرة.
+</p>
+
+</article>
+
+<script>
+
+function toggleMenu() {
+
+const menu = document.getElementById('navMenu');
+
+menu.style.left = (menu.style.left === '0px') ? '-250px' : '0px';
+
+}
+
+function showAbout() {
+
+document.getElementById('aboutModal').style.display = 'block';
+
+toggleMenu();
+
+}
+
+function closeAbout() {
+
+document.getElementById('aboutModal').style.display = 'none';
+
+}
+
+function showPrivacy() {
+
+document.getElementById('privacyModal').style.display = 'block';
+
+toggleMenu();
+
+}
+
+function closePrivacy() {
+
+document.getElementById('privacyModal').style.display = 'none';
+
+}
+
+function clearInput() {
+
+document.getElementById('urlInput').value = '';
+
+}
+
+async function analyzeVideo() {
+
+const urlInput = document.getElementById('urlInput');
+
+const btn = document.getElementById('analyzeBtn');
+
+const selector = document.getElementById('qualitySelector');
+
+if (!urlInput.value) {
+
+alert('يرجى لصق الرابط أولاً!');
+
+return;
+
+}
+
+btn.disabled = true;
+
+btn.innerText = 'جاري التحليل...';
+
+try {
+
+const res = await fetch(`/analyze?url=${encodeURIComponent(urlInput.value)}`);
+
+const data = await res.json();
+
+if (data.formats) {
+
+const select = document.getElementById('formatSelect');
+
+select.innerHTML = '';
+
+data.formats.forEach(f => {
+
+select.innerHTML += `<option value="${f.format_id}|${f.type}">${f.note}</option>`;
+
+});
+
+document.getElementById('videoTitle').innerText = data.title;
+
+selector.style.display = 'block';
+
+} else {
+
+alert('خطأ: ' + (data.error || 'تأكد من صحة الرابط'));
+
+}
+
+}
+
+catch (err) {
+
+alert('حدث خطأ في الاتصال بالسيرفر، حاول مجدداً.');
+
+console.error(err);
+
+}
+
+finally {
+
+btn.disabled = false;
+
+btn.innerText = 'تحليل الرابط';
+
+}
+
+}
+
+function startDownload() {
+
+const url = document.getElementById('urlInput').value;
+
+const value = document.getElementById('formatSelect').value;
+
+const [formatId, type] = value.split('|');
+
+alert('سيبدأ التحميل الآن.. يرجى الانتظار قليلاً حتى يكتمل الملف');
+
+window.location.href = `/download?url=${encodeURIComponent(url)}&format=${formatId}&type=${type}`;
+
+}
+
+</script>
+
 </body>
 </html>
+```

@@ -1,12 +1,13 @@
 import os
 import json
 import yt_dlp
+import traceback
+import tempfile
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 import uvicorn
-import tempfile
 
 app = FastAPI()
 
@@ -17,7 +18,6 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # دالة مراقبة التحميل
 def progress_hook(d):
     if d['status'] == 'downloading':
-        # طباعة معلومات التحميل في الـ Terminal للمتابعة
         print(f"تحميل: {d.get('_percent_str')} | السرعة: {d.get('_speed_str')} | المتبقي: {d.get('_eta_str')}")
 
 @app.get("/", response_class=HTMLResponse)
@@ -44,32 +44,40 @@ async def analyze_video(url: str):
                     })
             return {"title": info.get('title'), "formats": formats}
     except Exception as e:
-        return {"error": str(e)}
+        print(traceback.format_exc()) # سيطبع الخطأ كاملاً في السجلات
+        return {"error": "فشل التحليل، راجع السجلات"}
 
 @app.get("/download")
 async def download_video(url: str, format: str, type: str):
     try:
-        # استخدام مجلد مؤقت بدلاً من 'downloads/'
         temp_dir = tempfile.gettempdir()
+        # استخدام اسم ملف ثابت ومبسط لتجنب مشاكل الرموز والهاشتاجات
+        file_base = "downloaded_file"
         
         ydl_opts = {
             'format': format if type == 'video' else 'bestaudio/best',
-            'outtmpl': f'{temp_dir}/%(title)s.%(ext)s',
+            'outtmpl': f'{temp_dir}/{file_base}.%(ext)s',
+            'restrictfilenames': True, # هذا يمنع استخدام الرموز في اسم الملف
         }
-        
-        # تحذير: FFmpeg قد لا يعمل على Vercel بدون Static Build
-        # إذا واجهت خطأ FFmpeg، ستحتاج لإزالة التحويل (Postprocessors)
+
+        if type == 'audio':
+            ydl_opts['postprocessors'] = [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }]
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            filename = ydl.prepare_filename(info)
+            ydl.download([url])
+            # بناء مسار الملف بناءً على النوع
+            extension = "mp3" if type == 'audio' else "mp4"
+            final_path = os.path.join(temp_dir, f"{file_base}.{extension}")
             
-        return FileResponse(path=filename, media_type='application/octet-stream', filename=os.path.basename(filename))
+        return FileResponse(path=final_path, media_type='audio/mpeg' if type == 'audio' else 'video/mp4', filename=f"Tornado_Download.{extension}")
         
     except Exception as e:
+        print(traceback.format_exc())
         return {"error": f"خطأ في التحميل: {str(e)}"}
 
-        # اجعل تشغيل uvicorn محصوراً فقط عند التشغيل المحلي
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
